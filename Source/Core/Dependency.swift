@@ -7,11 +7,13 @@
 
 import Foundation
 
-/// A property wrapper you use to introduce external dependency into your ``Service``.
+/// 一个属性包装器，用于在你的 ``Service`` 中引入外部依赖。
 ///
-/// We prefer adopters to use this property wrapper to use external abilities. In this way, In the unit test, you can easily replace its implementation by calling ``Context/withDependency(_:factory:)``.
+/// 我们建议开发者使用这个属性包装器来使用外部功能。通过这种方式，在单元测试中，你可以通过调用 ``Context/withDependency(_:factory:)`` 轻松替换其实现。
 ///
-/// For example: Let's say we have a http client fetching number from the remote server. and author a Service that provides a API which just calls the http client to fetch the number and return as the result of API.
+/// 技术实现：使用属性包装器和泛型实现依赖注入，通过 KeyPath 实现类型安全的依赖访问
+///
+/// 例如：假设我们有一个从远程服务器获取数字的 http 客户端，并编写一个 Service，提供一个 API，该 API 仅调用 http 客户端来获取数字并作为 API 的结果返回。
 /// ```swift
 /// class TargetService: Service {
 ///
@@ -45,10 +47,10 @@ import Foundation
 /// }
 /// ```
 ///
-/// Here, we use @Dependency to introduce the external dependency, and the implementation is the extension of DependencyValues. this only instance of DependencyValues is kept inside ``Context``. so all of the dependencies' lifecycle is in line with the ``Context``.
-/// Besides of Protocol, we can use struct/class with closure as properties to achieve IoC as well. like the NumberClient struct above.
+/// 在这里，我们使用 @Dependency 来引入外部依赖，实现是 DependencyValues 的扩展。这个 DependencyValues 的唯一实例保存在 ``Context`` 中。因此，所有依赖项的生命周期都与 ``Context`` 保持一致。
+/// 除了协议之外，我们还可以使用带有闭包属性的结构体/类来实现 IoC，就像上面的 NumberClient 结构体一样。
 ///
-/// When we are authoring **Unit Test**, we can easily replace the implementation of external dependency by using ``Context/withDependency(_:factory:)``
+/// 当我们编写**单元测试**时，我们可以通过使用 ``Context/withDependency(_:factory:)`` 轻松替换外部依赖的实现
 /// ```swift
 /// func testFetchSuccess() async throws {
 ///
@@ -67,7 +69,7 @@ import Foundation
 /// }
 /// ```
 ///
-/// - Important: With @``Dependency``, @``ViewState`` defined in the ``Service``, we can easily figure out how many external dependencies this Service depends on, how many State this Service maintains.
+/// - 重要提示: 通过在 ``Service`` 中定义的 @``Dependency`` 和 @``ViewState``，我们可以轻松了解这个 Service 依赖于多少个外部依赖，维护了多少个状态。
 ///
 @propertyWrapper
 public struct Dependency<Value> {
@@ -89,10 +91,12 @@ public struct Dependency<Value> {
     }
 }
 
-/// Keep all of dependencies instance inside.
+/// 保存所有依赖项实例。
 ///
-/// All of dependencies should be an read-only computed property extension of it.
-/// The only instance of it is kept inside the ``Context``. See Also ``Dependency``.
+/// 所有依赖项都应该是它的只读计算属性扩展。
+/// 它的唯一实例保存在 ``Context`` 中。参见 ``Dependency``。
+///
+/// 技术实现：使用字典存储依赖实例，通过递归锁确保线程安全，实现依赖的单例模式和懒加载机制
 ///
 public struct DependencyValues {
     

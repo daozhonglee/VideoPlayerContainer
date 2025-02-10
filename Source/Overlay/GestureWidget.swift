@@ -8,25 +8,25 @@
 import SwiftUI
 import Combine
 
-/// Service used by GestureWidget.
+/// GestureWidget 使用的服务。
 ///
-/// The GestureService comes with multiple gestures: tap, double-tap, drag, long-press, rotate, pinch and hover.
-/// Other service can easily use the observe method to bind action to the gesture.
-/// For some of gestures, users can observe them by specifying the location. Such as Tap gesture is divided into left and right.
+/// GestureService 提供多种手势支持：点击、双击、拖拽、长按、旋转、缩放和悬停。
+/// 其他服务可以通过 observe 方法轻松地将动作绑定到手势上。
+/// 对于某些手势，用户可以通过指定位置来观察它们。例如，点击手势可以区分左右位置。
 ///
 public class GestureService : Service {
     
-    /// Flag to determine if the built-in gesture is enabled or disabled
+    /// 标志位，用于确定内置手势是否启用或禁用
     @Published public private(set) var enabled = true
     
-    /// Enable or disable the whole built-in gesture support
-    /// - Parameter onOrOff: flag to determine if the built-in gesture is enabled or disabled
+    /// 启用或禁用全部内置手势支持
+    /// - Parameter onOrOff: 标志位，用于确定内置手势是否启用或禁用
     ///
     public func configure(_ onOrOff: Bool) {
         self.enabled = onOrOff
     }
     
-    //MARK: Observe
+    //MARK: 手势观察
     
     public enum Gesture: Equatable {
 
@@ -57,7 +57,7 @@ public class GestureService : Service {
     
     private let observable = PassthroughSubject<GestureEvent, Never>()
     
-    /// Gesture Info received by users when event occurs.
+    /// 当手势事件发生时用户接收到的手势信息
     public struct GestureEvent {
         
         public enum Action {
@@ -79,10 +79,10 @@ public class GestureService : Service {
         public let value: Value
     }
     
-    /// Observe the specific gesture and bind action on it.
+    /// 观察特定手势并绑定动作
     /// - Parameters:
-    ///     - gesture: Gesture to observed.
-    ///     - handler: The action to perform when the specific gesture occurs.
+    ///     - gesture: 要观察的手势
+    ///     - handler: 当特定手势发生时要执行的动作
     ///
     public func observe(_ gesture: Gesture, handler: @escaping (GestureEvent)->Void) -> AnyCancellable {
         observable.filter { event in
@@ -92,36 +92,36 @@ public class GestureService : Service {
         }
     }
     
-    //MARK: Simultaneous Gesture
+    //MARK: 同步手势
     
-    /// Drag Gesture.
-    /// Gesture applying over the whole VideoPlayerContainer should be assigned to this to make sure you can receive events.
+    /// 拖拽手势
+    /// 应用于整个 VideoPlayerContainer 的手势应该分配给此属性以确保你能接收到事件
     @Published public var simultaneousDragGesture: _EndedGesture<_ChangedGesture<DragGesture>>?
     
-    /// Tap Gesture.
-    /// Gesture applying over the whole VideoPlayerContainer should be assigned to this to make sure you can receive events.
+    /// 点击手势
+    /// 应用于整个 VideoPlayerContainer 的手势应该分配给此属性以确保你能接收到事件
     @Published public var simultaneousTapGesture: _EndedGesture<SpatialTapGesture>?
 
-    /// DoubleTap Gesture.
-    /// Gesture applying over the whole VideoPlayerContainer should be assigned to this to make sure you can receive events.
+    /// 双击手势
+    /// 应用于整个 VideoPlayerContainer 的手势应该分配给此属性以确保你能接收到事件
     @Published public var simultaneousDoubleTapGesture: _EndedGesture<SpatialTapGesture>?
     
-    /// LongPress Gesture.
-    /// Gesture applying over the whole VideoPlayerContainer should be assigned to this to make sure you can receive events.
+    /// 长按手势
+    /// 应用于整个 VideoPlayerContainer 的手势应该分配给此属性以确保你能接收到事件
     @Published public var simultaneousLongPressGesture: _EndedGesture<LongPressGesture>?
     
-    /// Pinch Gesture.
-    /// Gesture applying over the whole VideoPlayerContainer should be assigned to this to make sure you can receive events.
+    /// 缩放手势
+    /// 应用于整个 VideoPlayerContainer 的手势应该分配给此属性以确保你能接收到事件
     @Published public var simultaneousPinchGesture: _EndedGesture<_ChangedGesture<MagnificationGesture>>?
     
-    /// Rotation Gesture.
-    /// Gesture applying over the whole VideoPlayerContainer should be assigned to this to make sure you can receive events.
+    /// 旋转手势
+    /// 应用于整个 VideoPlayerContainer 的手势应该分配给此属性以确保你能接收到事件
     @Published public var simultaneousRotationGesture: _EndedGesture<_ChangedGesture<RotationGesture>>?
     
-    //MARK: Gestures
+    //MARK: 手势实现
     
-    /// Tap Gesture.
-    /// Widgets inside the VideoPlayerContainer can use it as the simulataneous gesture to pass through the gesture to the built-in Tap gesture.
+    /// 点击手势
+    /// 技术实现：使用 SpatialTapGesture 识别单次点击，并根据点击位置判断左右区域
     public private(set) lazy var tapGesture: some SwiftUI.Gesture = {
         SpatialTapGesture(count: 1)
             .onEnded { [weak self] value in
@@ -132,8 +132,8 @@ public class GestureService : Service {
             }
     }()
 
-    /// Double-Tap Gesture.
-    /// Widgets inside the VideoPlayerContainer can use it as the simulataneous gesture to pass through the gesture to the built-in Double-Tap gesture.
+    /// 双击手势
+    /// 技术实现：使用 SpatialTapGesture 识别双击，并根据点击位置判断左右区域
     public private(set) lazy var doubleTapGesture: some SwiftUI.Gesture = {
         SpatialTapGesture(count: 2)
             .onEnded { [weak self] value in
@@ -144,8 +144,8 @@ public class GestureService : Service {
             }
     }()
     
-    /// LongPress Gesture.
-    /// Widgets inside the VideoPlayerContainer can use it as the simulataneous gesture to pass through the gesture to the built-in Long-Press gesture.
+    /// 长按手势
+    /// 技术实现：使用 LongPressGesture 识别长按动作，发送长按事件
     public private(set) lazy var longPressGesture: some SwiftUI.Gesture = {
         LongPressGesture()
             .onEnded { [weak self] value in
@@ -155,8 +155,8 @@ public class GestureService : Service {
             }
     }()
     
-    /// Drag Gesture.
-    /// Widgets inside the VideoPlayerContainer can use it as the simulataneous gesture to pass through the gesture to the built-in Drag gesture.
+    /// 拖拽手势
+    /// 技术实现：使用 DragGesture 识别拖拽，通过计算拖拽方向和起始位置来判断手势类型
     public private(set) lazy var dragGesture: some SwiftUI.Gesture = {
         
         let handleDrag: (DragGesture.Value, GestureEvent.Action)->Void = { [weak self] value, action in
@@ -204,8 +204,8 @@ public class GestureService : Service {
         
     }()
     
-    /// Pinch Gesture.
-    /// Widgets inside the VideoPlayerContainer can use it as the simulataneous gesture to pass through the gesture to the built-in Pinch gesture.
+    /// 缩放手势
+    /// 技术实现：使用 MagnificationGesture 识别缩放动作，处理缩放开始和结束事件
     public private(set) lazy var pinchGesture: some SwiftUI.Gesture = {
         MagnificationGesture()
             .onChanged { [weak self] value in
@@ -220,8 +220,8 @@ public class GestureService : Service {
             }
     }()
 
-    /// Rotation Gesture.
-    /// Widgets inside the VideoPlayerContainer can use it as the simulataneous gesture to pass through the gesture to the built-in Rotation gesture.
+    /// 旋转手势
+    /// 技术实现：使用 RotationGesture 识别旋转动作，处理旋转开始和结束事件
     public private(set) lazy var rotationGesture: some SwiftUI.Gesture = {
         RotationGesture()
             .onChanged { [weak self] value in
@@ -244,6 +244,8 @@ public class GestureService : Service {
     }
 }
 
+/// 手势组件
+/// 技术实现：使用 SwiftUI 的手势系统，通过 SimultaneousGesture 组合多个手势，实现复杂的交互功能
 struct GestureWidget: View {
     var body: some View {
         WithService(GestureService.self) { service in
@@ -292,7 +294,7 @@ struct GestureWidget: View {
 
 public extension Context {
     
-    /// Simple alternative for `context[GestureService.self]`
+    /// `context[GestureService.self]` 的简单替代方案
     var gesture: GestureService {
         self[GestureService.self]
     }

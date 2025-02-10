@@ -7,17 +7,17 @@
 
 import Foundation
 
-/// Non-Widget Service maintaining size of VideoPlayerContainer.
+/// 非 Widget 服务，用于维护 VideoPlayerContainer 的尺寸信息。
 public class ViewSizeService : Service {
     
     private(set) var size = CGSize.zero
     
-    /// Width of VideoPlayerContainer.
+    /// VideoPlayerContainer 的宽度。
     public var width: Double {
         size.width
     }
     
-    /// Height of VideoPlayerContainer.
+    /// VideoPlayerContainer 的高度。
     public var height: Double {
         size.height
     }
@@ -29,7 +29,7 @@ public class ViewSizeService : Service {
 
 public extension Context {
     
-    /// Simple alternative for `context[ViewSizeService.self]`
+    /// context[ViewSizeService.self] 的简单替代方式
     var viewSize: ViewSizeService {
         self[ViewSizeService.self]
     }

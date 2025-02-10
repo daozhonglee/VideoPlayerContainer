@@ -7,11 +7,13 @@
 
 import Foundation
 
-/// Context is the core concept, serving as a hub that's able to be accessed by all ``Service``s and ``Widget``s.
+/// Context 是核心概念，作为一个中心枢纽，可以被所有 ``Service`` 和 ``Widget`` 访问。
 ///
-/// It maintains a service locator which developers can fetch other Service with it without having to register before.
-/// It also maintains a dependencyValues which holds all of external dependencies used by services obtained from this Context.
-/// Generally, the Context lifecycle is the same as its enclosing underlying view.
+/// 它维护着一个服务定位器，开发者可以通过它获取其他 Service，而无需事先注册。
+/// 它还维护着一个 dependencyValues，用于保存从该 Context 获取的服务所使用的所有外部依赖。
+/// 通常，Context 的生命周期与其所在的底层视图相同。
+///
+/// 技术实现：使用 ObservableObject 协议实现状态管理，通过递归锁确保线程安全，采用字典存储服务实例
 ///
 public class Context : ObservableObject {
     
@@ -21,14 +23,16 @@ public class Context : ObservableObject {
     
     fileprivate var services = [String: Service]()
     
-    /// Obtain service instance by its Type.
+    /// 通过类型获取服务实例。
     ///
-    /// This method serves as a specialized service locator with a speicific cache policy, developers don't have to register before fetching.
-    /// It accepts Service.Type as input and return a service instance as needed, making sure there's a maximum of one instance for each ``Service`` type in one Context instance.
-    /// Also, you can stop it with ``stopService(_:)`` when you want.
+    /// 该方法作为一个特殊的服务定位器，具有特定的缓存策略，开发者无需事先注册即可获取服务。
+    /// 它接受 Service.Type 作为输入，并根据需要返回服务实例，确保每个 ``Service`` 类型在一个 Context 实例中最多只有一个实例。
+    /// 此外，当你不再需要时，可以通过 ``stopService(_:)`` 停止它。
     ///
-    /// - Parameter type: Type of services. For example, DemoService.self.
-    /// - Returns: the service instance corresponding to the type passed in.
+    /// 技术实现：使用类型名作为键，实现服务的单例模式和懒加载机制
+    ///
+    /// - Parameter type: 服务类型。例如：DemoService.self。
+    /// - Returns: 与传入类型对应的服务实例。
     ///
     public func startService<ServiceType>(_ type:ServiceType.Type) -> ServiceType where ServiceType: Service {
         
@@ -48,11 +52,13 @@ public class Context : ObservableObject {
         }
     }
     
-    /// Stop Service when it's no longer needed
+    /// 当不再需要服务时停止它
     ///
-    /// Sometimes, we don't need to keep the service alive throughout the VideoPlayerContainer instance.
-    /// For example, we have a Widget that uses a service which performs a **computation-intensive task** or has a **memory cache**.
-    /// So, when this widget is no longer needed, you should call it to release the resources.
+    /// 有时，我们不需要在整个 VideoPlayerContainer 实例的生命周期内保持服务运行。
+    /// 例如，我们有一个 Widget 使用了一个执行**计算密集型任务**或具有**内存缓存**的服务。
+    /// 因此，当不再需要这个 widget 时，你应该调用它来释放资源。
+    ///
+    /// 技术实现：通过从服务字典中移除服务实例来实现资源释放
     ///
     @discardableResult public func stopService<ServiceType>(_ type:ServiceType.Type) -> Bool {
         
@@ -68,28 +74,33 @@ public class Context : ObservableObject {
         }
     }
     
-    /// Simple alternative for ``startService(_:)``.
+    /// ``startService(_:)`` 的简单替代方式。
+    /// 技术实现：通过下标语法提供更简洁的服务访问方式
     public subscript<ServiceType>(_ type:ServiceType.Type) -> ServiceType where ServiceType: Service {
         startService(type)
     }
     
     private var dependencies = DependencyValues()
     
-    /// Retrieve an external dependency of ``Service``.
+    /// 获取 ``Service`` 的外部依赖。
     ///
-    /// You can introduce external dependencies with ``Dependency`` propertyWrapper.
-    /// In this way, you can easily change the implementation of Dependency to mock the return value of external dependencies
+    /// 你可以使用 ``Dependency`` 属性包装器引入外部依赖。
+    /// 通过这种方式，你可以轻松更改 Dependency 的实现来模拟外部依赖的返回值
     ///
-    /// - Parameter keyPath: The factory location for external dependency. See Also ``DependencyValues``.
+    /// 技术实现：通过 KeyPath 实现类型安全的依赖访问
+    ///
+    /// - Parameter keyPath: 外部依赖的工厂位置。参见 ``DependencyValues``。
     ///
     public func dependency<Value>(_ keyPath: KeyPath<DependencyValues, Value>) -> Value {
         dependencies.dependency(keyPath)
     }
     
-    /// Replace the implementation of dependency to mock the return value of external dependencies.
+    /// 替换依赖的实现以模拟外部依赖的返回值。
     ///
-    /// - Parameter keyPath: The factory location for external dependency. See Also ``DependencyValues``.
-    /// - Parameter factory: The factory you wanna overwrite the original one.
+    /// 技术实现：通过闭包注入实现依赖的动态替换，便于测试
+    ///
+    /// - Parameter keyPath: 外部依赖的工厂位置。参见 ``DependencyValues``。
+    /// - Parameter factory: 你想要覆盖原始工厂的新工厂。
     ///
     public func withDependency<Value>(_ keyPath: KeyPath<DependencyValues, Value>, factory: ()->Value) {
         dependencies.withDependency(keyPath, factory: factory)
