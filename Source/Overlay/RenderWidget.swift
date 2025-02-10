@@ -14,21 +14,26 @@ import UIKit
 import AppKit
 #endif
 
-/// Service used by RenderWidget.
+/// RenderWidget使用的服务。
 ///
-/// RenderService offers the AVPlayer to control over the playback, and AVPlayerLayer to control the detail of render.
-/// It also support changing the default AVPlayer. This way, you can pass the AVPlayer from one Context to another.
+/// RenderService提供AVPlayer来控制播放，以及AVPlayerLayer来控制渲染细节。
+/// 它还支持更改默认的AVPlayer。通过这种方式，你可以将AVPlayer从一个Context传递到另一个Context。
+/// 技术实现：使用AVFoundation框架的核心组件，结合SwiftUI的视图封装，实现跨平台的视频渲染功能。
+/// 采用依赖注入方式实现播放器实例的灵活切换。
 ///
 public class RenderService : Service {
     
-    /// AVPlayer instance.
+    /// AVPlayer实例
+    /// 技术实现：使用AVPlayer作为核心播放引擎
     public private(set) var player = AVPlayer()
     
-    /// AVPlayerLayer instance.
+    /// AVPlayerLayer实例
+    /// 技术实现：使用AVPlayerLayer处理视频渲染层
     public let layer = AVPlayerLayer()
     
-    /// Change to another AVPlayer instance.
-    /// - Parameter player: AVPlayer instance.
+    /// 切换到另一个AVPlayer实例
+    /// 技术实现：通过依赖注入模式实现播放器实例的动态切换
+    /// - Parameter player: AVPlayer实例
     ///
     public func attach(player: AVPlayer) {
         self.player = player
@@ -36,6 +41,8 @@ public class RenderService : Service {
     }
 }
 
+/// 渲染组件
+/// 技术实现：使用SwiftUI的视图组合，将AVPlayer的渲染层与手势层组合在一起
 struct RenderWidget : View {
     
     var body: some View {
@@ -50,6 +57,8 @@ struct RenderWidget : View {
 
 #if os(iOS) || os(watchOS) || os(tvOS)
 
+/// iOS平台的渲染视图
+/// 技术实现：使用UIViewRepresentable协议将UIKit视图封装到SwiftUI中
 fileprivate struct RenderView : UIViewRepresentable {
 
     let player: AVPlayer
@@ -65,6 +74,8 @@ fileprivate struct RenderView : UIViewRepresentable {
     func updateUIView(_ uiView: PlayerView, context: UIViewRepresentableContext<Self>) { }
 }
 
+/// iOS平台的播放器视图
+/// 技术实现：自定义UIView，管理AVPlayerLayer的生命周期和布局
 fileprivate class PlayerView: UIView {
     
     var player: AVPlayer? {
@@ -102,6 +113,8 @@ fileprivate class PlayerView: UIView {
 
 #elseif os(macOS)
 
+/// macOS平台的渲染视图
+/// 技术实现：使用NSViewRepresentable协议将AppKit视图封装到SwiftUI中
 fileprivate struct RenderView : NSViewRepresentable {
     
     let player: AVPlayer
@@ -117,6 +130,8 @@ fileprivate struct RenderView : NSViewRepresentable {
     func updateNSView(_ uiView: PlayerView, context: NSViewRepresentableContext<Self>) { }
 }
 
+/// macOS平台的播放器视图
+/// 技术实现：自定义NSView，管理AVPlayerLayer的生命周期和布局
 fileprivate class PlayerView: NSView {
     
     init() {
@@ -165,7 +180,8 @@ fileprivate class PlayerView: NSView {
 
 public extension Context {
     
-    /// Simple alternative for `context[RenderService.self]`
+    /// `context[RenderService.self]` 的简单替代方案
+    /// 技术实现：通过扩展提供便捷访问方式
     var render: RenderService {
         self[RenderService.self]
     }

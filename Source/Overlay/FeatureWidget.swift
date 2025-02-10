@@ -8,9 +8,10 @@
 import SwiftUI
 import Combine
 
-/// Service used by FeatureWidget.
+/// FeatureWidget使用的服务
 ///
-/// FeatureService is used to pop up panels from 4 directions in the FeatureWidget.
+/// FeatureService用于在FeatureWidget中从4个方向弹出面板。
+/// 技术实现：使用SwiftUI的动画系统和状态管理，实现面板的弹出和收起效果。
 /// 
 public class FeatureService : Service {
     
@@ -44,12 +45,14 @@ public class FeatureService : Service {
     
     private var cancellables = [AnyCancellable]()
     
+    /// 面板弹出的方向枚举
+    /// 技术实现：使用嵌套枚举定义面板的展示方式和位置
     public enum Direction: Equatable {
         
         public enum Style: Equatable {
-            /// The panel presents over the other views without affecting others.
+            /// 面板覆盖在其他视图之上，不影响其他视图
             case cover
-            /// The panel presents with squeezing the space of render view.
+            /// 面板通过挤压渲染视图的空间来展示
             case squeeze(CGFloat)
         }
         
@@ -59,30 +62,33 @@ public class FeatureService : Service {
         case bottom(Style)
     }
     
-    /// Configure if the tap action will dismiss the panel.
-    /// - Parameter dismissOnTap: The boolean value that indicates whether the click will dismiss the panel.
+    /// 配置点击是否会关闭面板
+    /// 技术实现：通过布尔值控制面板的交互行为
+    /// - Parameter dismissOnTap: 布尔值，指示点击是否会关闭面板
     ///
     public func configure(dismissOnTap: Bool) {
         self.dismissOnTap = dismissOnTap
     }
     
-    /// Configure if the status change will dismiss the panel.
-    /// - Parameter dismissOnStatusChanged: The boolean value that indicates whether the status change will dismiss the panel.
+    /// 配置状态改变是否会关闭面板
+    /// 技术实现：通过布尔值控制面板对状态变化的响应
+    /// - Parameter dismissOnStatusChanged: 布尔值，指示状态改变是否会关闭面板
     ///
     public func configure(dismissOnStatusChanged: Bool) {
         self.dismissOnStatusChanged = dismissOnStatusChanged
     }
     
-    /// Present a panel from a direction.
+    /// 从指定方向弹出面板
+    /// 技术实现：使用SwiftUI的动画系统和回调机制，实现面板的生命周期管理
     ///
     /// - Parameters:
-    ///     - direction: The panel fly in from this direction.
-    ///     - animation: Animation applied on the panel when presenting.
-    ///     - beforePresent: The action to perform before the presentation of panel.
-    ///     - afterPresent: The action to perform after the presentation of panel.
-    ///     - beforeDismiss: The action to perform before the dismissal of panel.
-    ///     - afterDismiss: The action to perform after the dismissal of panel.
-    ///     - content: View builder that creates the content of panel.
+    ///     - direction: 面板从此方向飞入
+    ///     - animation: 面板展示时应用的动画
+    ///     - beforePresent: 面板展示前执行的动作
+    ///     - afterPresent: 面板展示后执行的动作
+    ///     - beforeDismiss: 面板关闭前执行的动作
+    ///     - afterDismiss: 面板关闭后执行的动作
+    ///     - content: 创建面板内容的视图构建器
     ///
     public func present(
         _ direction: Direction,
@@ -112,8 +118,9 @@ public class FeatureService : Service {
         }
     }
     
-    /// Dismiss the presenting panel.
-    /// - Parameter animation: Animation applied on the panel when dismissing.
+    /// 关闭当前展示的面板
+    /// 技术实现：使用SwiftUI的动画系统实现平滑的关闭效果
+    /// - Parameter animation: 面板关闭时应用的动画
     ///
     public func dismiss(animation: Animation? = .default) {
         let action = feature?.action
@@ -130,6 +137,8 @@ public class FeatureService : Service {
     }
 }
 
+/// 特性组件
+/// 技术实现：使用SwiftUI的ZStack和条件渲染，实现多方向面板的展示
 struct FeatureWidget: View {
     
     var body: some View {
@@ -205,7 +214,8 @@ struct FeatureWidget: View {
 
 public extension Context {
     
-    /// Simple alternative for `context[FeatureService.self]`
+    /// `context[FeatureService.self]` 的简单替代方案
+    /// 技术实现：通过扩展提供便捷访问方式
     var feature: FeatureService {
         self[FeatureService.self]
     }
